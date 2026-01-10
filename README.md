@@ -29,7 +29,7 @@
 <p align="center">
 <img src="asset/figure.png" width="100%" height="auto">
 </p>
-<p align="center"><b>Figure 1.</b></p>
+<p align="center">Figure 1. <b>Overview of TABED. </b></p>
 
 ***
 
@@ -96,101 +96,54 @@ pip install -r requirements.txt
 ### Environment Configuration
 
 ```bash
-# Set up environment variables
-source setup_env.sh
-
 # Set your Hugging Face token for model access
 export HF_TOKEN="your_huggingface_token"
 ```
 
 ***
 
-## ⚡ Quickstart
-
-```bash
-# Run speculative decoding with TABED on a single dataset
-CUDA_VISIBLE_DEVICES=0 python3 main.py with SpecDecoding HalfPrecision LlavaBenchInTheWildData \
-    drf=mjbooo/lvlm68m-ov \
-    tgt=llava-hf/llava-v1.6-vicuna-7b-hf \
-    TabedMT \
-    exp_title=quickstart
-```
-
-***
 
 ## 🚀 Running Experiments
 
 ### Drafting Methods
 
-TABED supports various drafting configurations:
-- **M (Multimodal)**: Uses full multimodal input
-- **T (Text-only)**: Uses only text input
-- **C (Caption)**: Uses image captions
-- **P (Pool)**: Uses pooled image features
+This repository supports various drafting configurations:
+#### 1. Single Drafting Method
+- M (Multimodal) Uses full multimodal input
+- T (Text-only) Uses only text input
+- C (Caption) Uses image captions
+- P (Pool): Uses pooled image features
 
-Ensemble combinations: `TabedMT`, `TabedMTC`, `TabedMTP`, `TabedMTCP`, etc.
+#### 2. Static Ensemble Drafting Method ([In-batch Ensemble Drafting; IbED](https://openreview.net/pdf?id=ffDhpmwqdu))
 
-### Evaluation
+- MT
+- MTC
+- MTP
+- MTCP
 
-```bash
-# Single drafting method (Multimodal)
-CUDA_VISIBLE_DEVICES=0 python3 main.py with SpecDecoding HalfPrecision LlavaBenchInTheWildData \
-    drf=mjbooo/lvlm68m-ov tgt=llava-hf/llava-v1.6-vicuna-7b-hf \
-    MultimodalDraft exp_title=eval-M
-
-# TABED with MT ensemble
-CUDA_VISIBLE_DEVICES=0 python3 main.py with SpecDecoding HalfPrecision LlavaBenchInTheWildData \
-    drf=mjbooo/lvlm68m-ov tgt=llava-hf/llava-v1.6-vicuna-7b-hf \
-    TabedMT tabed_rule=mm-weight mm_weight_policy=1 exp_title=eval-MT
-
-# TABED with history-dependent weighting (MT*)
-CUDA_VISIBLE_DEVICES=0 python3 main.py with SpecDecoding HalfPrecision LlavaBenchInTheWildData \
-    drf=mjbooo/lvlm68m-ov tgt=llava-hf/llava-v1.6-vicuna-7b-hf \
-    TabedMT tabed_rule=mm-weight mm_weight_policy=1 \
-    history_dependent=True history_window=0 history_item=kld \
-    exp_title=eval-MT-history
-```
+#### 3. Dynamic Ensemble Drafting Method (Test-Time Adaptive Ensemble Drafting; TABED)
+- **TabedMT** 
+- **TabedMTC** 
+- **TabedMTP** 
+- **TabedMTCP**
 
 ### Reproducing Paper Results
 
 We provide two evaluation scripts for comprehensive benchmarking:
+<p align="center">
+<img src="asset/table1.png" width="100%" height="auto">
+</p>
+<p align="center"> Table 1. Block efficiency results for drafting methods.</p> 
 
 ```bash
-# Single-turn experiments (standard VQA tasks)
+# Single-turn experiments
 bash run_scripts/first_ALL.sh
 
-# Multi-turn experiments (conversational tasks)
-bash run_scripts/multi_ALL.sh
+# Multi-turn experiments (only if the first-turn expts are run)
+bash run_scripts/second_ALL.sh
 ```
 
-#### Configuring the Scripts
 
-Both scripts support customization via configuration variables at the top of each file:
-
-```bash
-# GPU device selection
-device_num=0
-
-# Draft and target models
-drfs=(mjbooo/lvlm68m)
-tgts=(llava-hf/llava-1.5-7b-hf)
-
-# TABED configuration
-tabed_rules=(mm-weight)
-mm_weight_policys=(1)
-```
-
-### Supported Datasets
-
-**Single-image:** `LlavaBenchInTheWildData`, `DocVQAData`, `PopeData`, `MMVetData`
-
-**Multi-image:** `IEditData`, `MagicBrushData`, `SpotTheDiffData`, `PororoSVData`, `VISTData`
-
-***
-
-## 📊 Results
-
-TABED achieves an average robust walltime speedup of **1.74x** over autoregressive decoding and a **5% improvement** over single drafting methods across 9 diverse datasets.
 
 ***
 
@@ -198,9 +151,7 @@ TABED achieves an average robust walltime speedup of **1.74x** over autoregressi
 
 This project builds upon the work of several open-source repositories:
 - [LLaVA](https://github.com/haotian-liu/LLaVA)
-- [LLaVA-OneVision](https://github.com/LLaVA-VL/LLaVA-NeXT)
-- [Hugging Face Transformers](https://github.com/huggingface/transformers)
-- [Sacred](https://github.com/IDSIA/sacred)
+- [llava-hf (huggingface)](https://huggingface.co/llava-hf)
 
 ***
 
@@ -215,11 +166,5 @@ If you find this work useful, please cite our paper:
 ***
 
 ## 📋 TODO
-
-### High Priority
 - Add arXiv link and badge once paper is published
-- Add project page link (if applicable)
-
-### Optional Enhancements
-- Add demo script (`demo.py`)
-- Add detailed results table/figures from the paper
+- Release batched inference rather than sequential inference
