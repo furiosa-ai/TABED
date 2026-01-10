@@ -47,7 +47,7 @@ def config():
 
     # Drafting options: 'multimodal', 'text-only', 'caption',
     drafting = 'multimodal'
-    image_top_k_attention = 0  # llama: 576, qwen: 729
+    image_top_k_attention = 0  # llama: 576
     is_drf_text_only = drafting in [
         'text-only', 'special-token', 'caption', 'tokenized-image'
     ]

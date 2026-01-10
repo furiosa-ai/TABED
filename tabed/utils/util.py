@@ -16,54 +16,21 @@ import yaml
 # =============================================================================
 
 MODEL_NAME_MAP = {
-    # T5 models
-    "google/t5-small-lm-adapt": "T5lm-small",
-    "google/t5-base-lm-adapt": "T5lm-base",
-    "google/t5-large-lm-adapt": "T5lm-large",
-    "google/t5-xl-lm-adapt": "T5lm-xl",
-    "google/t5-xxl-lm-adapt": "T5lm-xxl",
-
-    # LLaVA models from llava-hf
+    # Target models (LLaVA)
     "llava-hf/llava-1.5-7b-hf": "llava-llama-7b",
     "llava-hf/llava-1.5-13b-hf": "llava-llama-13b",
     "llava-hf/llava-v1.6-vicuna-7b-hf": "llava-vicuna-7b",
     "llava-hf/llava-v1.6-vicuna-13b-hf": "llava-vicuna-13b",
-    "llava-hf/llava-interleave-qwen-0.5b-hf": "llava-qwen-0.5b",
-    "llava-hf/llava-interleave-qwen-7b-hf": "llava-qwen-7b",
 
-    # Custom trained models
+    # Draft models
     "mjbooo/lvlm68m": "llava-68m",
     "mjbooo/lvlm160m-bf16": "llava-160m",
     "mjbooo/lvlm290m": "llava-290m",
-    "mjbooo/lm68m": "llama-68m",
-    "mjbooo/lm290m": "llama-290m",
     "mjbooo/lvlm68m-ov": "llava-68m-ov",
-    "mjbooo/lvlm68m-ov-full": "llava-68m-ov-full",
-    "mjbooo/lvlm68m-pretrain-only": "llava-68m-pto",
-
-    # Pooling models
-    "mjbooo/lvlm68m-pool-0-ft": "llava-68m-pool-0-ft",
-    "mjbooo/lvlm68m-pool-1-ft": "llava-68m-pool-1-ft",
-    "mjbooo/lvlm68m-pool-4-ft": "llava-68m-pool-4-ft",
-    "mjbooo/lvlm68m-pool-9-ft": "llava-68m-pool-9-ft",
-    "mjbooo/lvlm68m-pool-36-ft": "llava-68m-pool-36-ft",
-    "mjbooo/lvlm68m-pool-144-ft": "llava-68m-pool-144-ft",
-
-    # Base LLaMA/Vicuna models
-    "JackFram/llama-68m": "llama-68m",
-    "JackFram/llama-160m": "llama-160m",
-    "double7/vicuna-68m": "vicuna-68m",
-    "double7/vicuna-160m": "vicuna-160m",
 
     # Captioning models
-    "Salesforce/blip-image-captioning-base": "blip-base",
-    "Salesforce/blip-image-captioning-large": "blip-large",
-    "Salesforce/blip2-opt-2.7b-coco": "blip2-2.7b",
-    "Salesforce/blip2-opt-2.7b": "blip2-2.7b-noft",
-    "Salesforce/blip2-opt-6.7b-coco": "blip2-6.7b",
-    "microsoft/Florence-2-large": "florence2-0.77b-noft",
     "microsoft/Florence-2-large-ft": "florence2-0.77b",
-    "ljnlonoljpiljm/florence-2-large-llava-recap-cc3m": "florence2-0.77b-cc3m",
+    "microsoft/Florence-2-large": "florence2-0.77b-noft",
 
     # Caption types
     "<CAPTION>": "C",
@@ -72,16 +39,9 @@ MODEL_NAME_MAP = {
     "<OCR>": "OCR",
 }
 
-DATASET_NAME_MAP = {
-    "cnn_dailymail": ("cnndm", "summarization"),
-    "xsum": ("xsum", "summarization"),
-    "wmt14": ("wmt", "translation"),
-    "LLaVA-Instruct-150K": ("llava-inst", "summarization"),
-    "COCO2014": ("coco", "summarization"),
-}
 
 # Combined map for backward compatibility
-map_name_task = {**MODEL_NAME_MAP, **DATASET_NAME_MAP}
+map_name_task = {**MODEL_NAME_MAP}
 
 
 # =============================================================================
@@ -255,12 +215,8 @@ def get_image_escape_token_num(model_name: str) -> Tuple[int, int]:
     Raises:
         NotImplementedError: If model is not supported.
     """
-    if any(x in model_name for x in [
-        "mjbooo/lvlm", "mjbooo/lm", "llava-hf/llava-1.5-7b-hf"
-    ]):
+    if any(x in model_name for x in ["mjbooo/lvlm", "llava-hf/llava"]):
         return 2, 3
-    elif "llava-hf/llava-interleave-qwen" in model_name:
-        return 1, 1
     else:
         raise NotImplementedError(
             f"get_image_escape_token_num not implemented for {model_name}"
@@ -279,12 +235,8 @@ def get_caption_prefix_ids(model_name: str) -> torch.LongTensor:
     Raises:
         NotImplementedError: If model is not supported.
     """
-    if any(x in model_name for x in [
-        "mjbooo/lvlm", "mjbooo/lm", "llava-hf/llava-1.5-7b-hf"
-    ]):
+    if any(x in model_name for x in ["mjbooo/lvlm", "llava-hf/llava"]):
         return torch.LongTensor([1967, 29901, 29871])
-    elif "llava-hf/llava-interleave-qwen" in model_name:
-        return torch.LongTensor([1805, 25, 220])
     else:
         raise NotImplementedError(
             f"get_caption_prefix_ids not implemented for {model_name}"
@@ -303,12 +255,8 @@ def get_pseudo_image_text_token_ids(model_name: str) -> torch.LongTensor:
     Raises:
         NotImplementedError: If model is not supported.
     """
-    if any(x in model_name for x in [
-        "mjbooo/lvlm", "mjbooo/lm", "llava-hf/llava-1.5-7b-hf"
-    ]):
+    if any(x in model_name for x in ["mjbooo/lvlm", "llava-hf/llava"]):
         return torch.LongTensor([529, 3027, 29958])
-    elif "llava-hf/llava-interleave-qwen" in model_name:
-        return torch.LongTensor([27, 1805, 29])
     else:
         raise NotImplementedError(
             f"get_pseudo_image_text_token_ids not implemented for {model_name}"

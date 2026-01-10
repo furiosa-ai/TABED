@@ -4,7 +4,6 @@ from .util import (
     # Name mappings
     map_name_task,
     MODEL_NAME_MAP,
-    DATASET_NAME_MAP,
     # Name functions
     get_short_name,
     get_tabed_name,
@@ -23,7 +22,7 @@ from .util import (
 
 from .saver import Saver
 
-from .utils_trainer import (
+from .utils_evaluator import (
     build_models,
     build_tokenizers,
     build_image_processors,
@@ -45,7 +44,6 @@ __all__ = [
     # Name mappings
     "map_name_task",
     "MODEL_NAME_MAP",
-    "DATASET_NAME_MAP",
     # Name functions
     "get_short_name",
     "get_tabed_name",
@@ -62,7 +60,7 @@ __all__ = [
     "patch_function",
     # Saver
     "Saver",
-    # Trainer utilities
+    # Evaluator utilities
     "build_models",
     "build_tokenizers",
     "build_image_processors",

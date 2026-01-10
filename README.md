@@ -54,63 +54,153 @@ In the [Google Drive link](https://drive.google.com/drive/folders/1VO5XB4piOBQH-
 
 ## ⚙️ Setup
 
-<!-- TODO: Complete setup instructions -->
-
 ### Prerequisites
-```bash
-# TODO
-```
+- Python 3.10+
+- CUDA 12.1+ (for GPU acceleration)
+- PyTorch 2.3.1+
 
 ### Installation
 
 ```bash
-# TODO
+# Clone the repository
+git clone https://github.com/furiosa-ai/TABED.git
+cd TABED
+```
+
+#### Option 1: Using uv (Recommended - Fast)
+
+[uv](https://github.com/astral-sh/uv) provides fast, reproducible environment setup.
+
+```bash
+# Run the install script (installs uv if needed)
+./install.sh
+
+# Activate the environment
+source .venv/bin/activate
+```
+
+#### Option 2: Using conda
+
+```bash
+# Create and activate conda environment
+conda create -n tabed python=3.10 -y
+conda activate tabed
+
+# Install PyTorch with CUDA 12.1
+pip install torch==2.3.1 torchvision==0.18.1 --index-url https://download.pytorch.org/whl/cu121
+
+# Install other dependencies
+pip install -r requirements.txt
+```
+
+### Environment Configuration
+
+```bash
+# Set up environment variables
+source setup_env.sh
+
+# Set your Hugging Face token for model access
+export HF_TOKEN="your_huggingface_token"
 ```
 
 ***
 
 ## ⚡ Quickstart
 
-<!-- TODO: Add quickstart code example -->
-
-```python
-# TODO
+```bash
+# Run speculative decoding with TABED on a single dataset
+CUDA_VISIBLE_DEVICES=0 python3 main.py with SpecDecoding HalfPrecision LlavaBenchInTheWildData \
+    drf=mjbooo/lvlm68m-ov \
+    tgt=llava-hf/llava-v1.6-vicuna-7b-hf \
+    TabedMT \
+    exp_title=quickstart
 ```
 
 ***
 
 ## 🚀 Running Experiments
 
-<!-- TODO: Add evaluation commands and configurations -->
+### Drafting Methods
+
+TABED supports various drafting configurations:
+- **M (Multimodal)**: Uses full multimodal input
+- **T (Text-only)**: Uses only text input
+- **C (Caption)**: Uses image captions
+- **P (Pool)**: Uses pooled image features
+
+Ensemble combinations: `TabedMT`, `TabedMTC`, `TabedMTP`, `TabedMTCP`, etc.
 
 ### Evaluation
 
 ```bash
-# TODO
+# Single drafting method (Multimodal)
+CUDA_VISIBLE_DEVICES=0 python3 main.py with SpecDecoding HalfPrecision LlavaBenchInTheWildData \
+    drf=mjbooo/lvlm68m-ov tgt=llava-hf/llava-v1.6-vicuna-7b-hf \
+    MultimodalDraft exp_title=eval-M
+
+# TABED with MT ensemble
+CUDA_VISIBLE_DEVICES=0 python3 main.py with SpecDecoding HalfPrecision LlavaBenchInTheWildData \
+    drf=mjbooo/lvlm68m-ov tgt=llava-hf/llava-v1.6-vicuna-7b-hf \
+    TabedMT tabed_rule=mm-weight mm_weight_policy=1 exp_title=eval-MT
+
+# TABED with history-dependent weighting (MT*)
+CUDA_VISIBLE_DEVICES=0 python3 main.py with SpecDecoding HalfPrecision LlavaBenchInTheWildData \
+    drf=mjbooo/lvlm68m-ov tgt=llava-hf/llava-v1.6-vicuna-7b-hf \
+    TabedMT tabed_rule=mm-weight mm_weight_policy=1 \
+    history_dependent=True history_window=0 history_item=kld \
+    exp_title=eval-MT-history
 ```
 
 ### Reproducing Paper Results
 
+We provide two evaluation scripts for comprehensive benchmarking:
+
 ```bash
-# TODO
+# Single-turn experiments (standard VQA tasks)
+bash run_scripts/first_ALL.sh
+
+# Multi-turn experiments (conversational tasks)
+bash run_scripts/multi_ALL.sh
 ```
+
+#### Configuring the Scripts
+
+Both scripts support customization via configuration variables at the top of each file:
+
+```bash
+# GPU device selection
+device_num=0
+
+# Draft and target models
+drfs=(mjbooo/lvlm68m)
+tgts=(llava-hf/llava-1.5-7b-hf)
+
+# TABED configuration
+tabed_rules=(mm-weight)
+mm_weight_policys=(1)
+```
+
+### Supported Datasets
+
+**Single-image:** `LlavaBenchInTheWildData`, `DocVQAData`, `PopeData`, `MMVetData`
+
+**Multi-image:** `IEditData`, `MagicBrushData`, `SpotTheDiffData`, `PororoSVData`, `VISTData`
 
 ***
 
 ## 📊 Results
 
-<!-- TODO: Add results table or figures -->
+TABED achieves an average robust walltime speedup of **1.74x** over autoregressive decoding and a **5% improvement** over single drafting methods across 9 diverse datasets.
 
 ***
 
 ## 🙏 Acknowledgements
 
-<!-- TODO: Add acknowledgements to relevant repositories -->
-
 This project builds upon the work of several open-source repositories:
 - [LLaVA](https://github.com/haotian-liu/LLaVA)
 - [LLaVA-OneVision](https://github.com/LLaVA-VL/LLaVA-NeXT)
-<!-- TODO: Add other relevant repositories -->
+- [Hugging Face Transformers](https://github.com/huggingface/transformers)
+- [Sacred](https://github.com/IDSIA/sacred)
 
 ***
 
@@ -126,26 +216,10 @@ If you find this work useful, please cite our paper:
 
 ## 📋 TODO
 
-The following sections need to be completed:
-
 ### High Priority
-- [ ] Add arXiv link and badge once paper is published
-- [ ] Add project page link (if applicable)
-- [ ] Add teaser/overview figure (`docs/teaser.png`)
-- [ ] Complete Setup section with actual installation commands
-- [ ] Add `requirements.txt` file
-- [ ] Add Quickstart code example with minimal working demo
-
-### Documentation
-- [ ] Add inference code and usage instructions
-- [ ] Add evaluation commands with configuration files
-- [ ] Add commands to reproduce paper results
-- [ ] Add results table/figures from the paper
-- [ ] Add dataset information (11 datasets mentioned in abstract)
+- Add arXiv link and badge once paper is published
+- Add project page link (if applicable)
 
 ### Optional Enhancements
-- [ ] Add License file and badge
-- [ ] Add demo script (`demo.py`)
-- [ ] Add configuration files for different experiments
-- [ ] Add Acknowledgements section with relevant repositories
-- [ ] Add Features/Overview section highlighting key contributions
+- Add demo script (`demo.py`)
+- Add detailed results table/figures from the paper

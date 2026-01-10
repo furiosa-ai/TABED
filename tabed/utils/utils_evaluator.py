@@ -1,4 +1,4 @@
-"""Trainer utility functions for building models and components."""
+"""Evaluator utility functions for building models and components."""
 
 from typing import Any, Dict, Tuple, Type
 
@@ -25,7 +25,7 @@ def build_models(_config: Dict[str, Any]) -> Dict[str, PreTrainedModel]:
     Returns:
         Dictionary mapping role names to loaded models.
     """
-    logging.info("[Trainer] Build models")
+    logging.info("[Evaluator] Build models")
     models = {}
 
     for role in ['drf', 'tgt']:
@@ -48,7 +48,7 @@ def build_tokenizers(
     Returns:
         Tuple of (tokenizers dict, eos_token_id, pad_token_id).
     """
-    logging.info("[Trainer] Build tokenizers")
+    logging.info("[Evaluator] Build tokenizers")
     tokenizers = {}
     eos_token_id = None
     pad_token_id = None
@@ -74,7 +74,7 @@ def build_image_processors(_config: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Dictionary mapping role names to image processors.
     """
-    logging.info("[Trainer] Build image processors")
+    logging.info("[Evaluator] Build image processors")
     image_processors = {}
 
     for role in ['drf', 'tgt']:
@@ -97,7 +97,7 @@ def get_decoding_class(_config: Dict[str, Any]) -> Type:
     Raises:
         ValueError: If decoding type is invalid.
     """
-    logging.info("[Trainer] Build decoding")
+    logging.info("[Evaluator] Build decoding")
 
     if _config['decoding'] == 'ard':
         return AutoregressiveDecoding
@@ -135,7 +135,7 @@ def warmup_generation(
         warmup_steps: Number of warmup iterations.
     """
     inputs = tokenizer("Hello, my dog is cute", return_tensors="pt").to(model.device)
-    logging.info(f"[Trainer] Warmup steps: {warmup_steps}")
+    logging.info(f"[Evaluator] Warmup steps: {warmup_steps}")
 
     for _ in range(warmup_steps):
         _ = model.generate(**inputs)

@@ -1,5 +1,5 @@
 #!/bin/bash
-# TABED Evaluation Script - Single-turn experiments
+# TABED Evaluation Script - Multi-turn experiments
 
 # =============================================================================
 # Configuration
@@ -21,9 +21,12 @@ caption_types=("<CAPTION>")
 target_dim_image_poolings=(144)
 
 # History configuration
-history_windows=(0) # all past tokens
+history_windows=(0)
 history_items=(w-grid kld tvd)
 history_w_grid_measures=(num-accepted-kld)
+
+# Multi-turn tasks
+multi_turn_tasks=(qaorg-qaorg qaorg-captioning qaorg-summary qaorg-story qaorg-nq qaorg-gsm8k)
 
 # =============================================================================
 # Helper Functions
@@ -36,9 +39,12 @@ run_experiment() {
     for drf in "${drfs[@]}"; do
         for tgt in "${tgts[@]}"; do
             for dataset in "${datasets[@]}"; do
-                OMP_NUM_THREADS=4 NUMEXPR_MAX_THREADS=4 CUDA_VISIBLE_DEVICES=$device_num \
-                    python3 main.py with SpecDecoding HalfPrecision $dataset \
-                    drf=$drf tgt=$tgt $drafting $extra_args exp_title=$exp_title
+                for multi_turn_task in "${multi_turn_tasks[@]}"; do
+                    OMP_NUM_THREADS=4 NUMEXPR_MAX_THREADS=4 CUDA_VISIBLE_DEVICES=$device_num \
+                        python3 main.py with SpecDecoding HalfPrecision $dataset \
+                        drf=$drf tgt=$tgt $drafting \
+                        multi_turn_task=$multi_turn_task $extra_args exp_title=$exp_title
+                done
             done
         done
     done
@@ -52,7 +58,9 @@ run_evaluation() {
 
     python3 tabed/utils/evaluation.py with EvaluationSD \
         exp_title=$exp_title $eval_model $eval_drafting \
-        eval_datasets=$eval_datasets $extra_args
+        eval_datasets=$eval_datasets \
+        eval_multi_turn_task=$(IFS=,; echo "${multi_turn_tasks[*]}") \
+        $extra_args
 }
 
 # =============================================================================
@@ -60,17 +68,17 @@ run_evaluation() {
 # =============================================================================
 
 # M: Multimodal
-exp_title="llava-next-68m-7b-single-M"
+exp_title="llava-next-68m-7b-single-M-second-turn"
 run_experiment "$exp_title" "MultimodalDraft"
 run_evaluation "$exp_title" "eval_drafting=multimodal"
 
 # T: Text-only
-exp_title="llava-next-68m-7b-single-T"
+exp_title="llava-next-68m-7b-single-T-second-turn"
 run_experiment "$exp_title" "TextOnlyDraft"
 run_evaluation "$exp_title" "eval_drafting=text-only"
 
 # C: Caption
-exp_title="llava-next-68m-7b-single-C"
+exp_title="llava-next-68m-7b-single-C-second-turn"
 for caption_type in "${caption_types[@]}"; do
     for captioning_model in "${captioning_models[@]}"; do
         run_experiment "$exp_title" "CaptionDraft" \
@@ -81,7 +89,7 @@ run_evaluation "$exp_title" "eval_drafting=caption" \
     "eval_caption_type=${caption_types[*]}" "eval_captioning_model=${captioning_models[*]}"
 
 # P: Image Pool
-exp_title="llava-next-68m-7b-single-P"
+exp_title="llava-next-68m-7b-single-P-second-turn"
 for target_dim in "${target_dim_image_poolings[@]}"; do
     run_experiment "$exp_title" "InferencePoolDraft" "target_dim_image_pooling=$target_dim"
 done
@@ -93,7 +101,7 @@ run_evaluation "$exp_title" "eval_drafting=image-pool" \
 # =============================================================================
 
 # MT: Multimodal + Text-only
-exp_title="llava-next-68m-7b-IbED-MT"
+exp_title="llava-next-68m-7b-IbED-MT-second-turn"
 for tabed_rule in "${tabed_rules[@]}"; do
     for mm_weight_policy in "${mm_weight_policys[@]}"; do
         run_experiment "$exp_title" "TabedMT" \
@@ -104,7 +112,7 @@ run_evaluation "$exp_title" "EvalTabedMT" \
     "eval_tabed_rule=${tabed_rules[*]}" "eval_mm_weight_policy=${mm_weight_policys[*]}"
 
 # MT*: MT with history
-exp_title="llava-next-68m-7b-IbED-MT-history"
+exp_title="llava-next-68m-7b-IbED-MT-history-second-turn"
 for tabed_rule in "${tabed_rules[@]}"; do
     for mm_weight_policy in "${mm_weight_policys[@]}"; do
         for history_item in "${history_items[@]}"; do
@@ -126,7 +134,7 @@ run_evaluation "$exp_title" "EvalTabedMT" \
     "eval_history_w_grid_measure=${history_w_grid_measures[*]}"
 
 # MTC: Multimodal + Text-only + Caption
-exp_title="llava-next-68m-7b-IbED-MTC"
+exp_title="llava-next-68m-7b-IbED-MTC-second-turn"
 for tabed_rule in "${tabed_rules[@]}"; do
     for mm_weight_policy in "${mm_weight_policys[@]}"; do
         run_experiment "$exp_title" "TabedMTC" \
@@ -138,7 +146,7 @@ run_evaluation "$exp_title" "EvalTabedMTC" \
     "eval_captioning_model=${captioning_models[*]}" "eval_caption_type=${caption_types[*]}"
 
 # MTC*: MTC with history
-exp_title="llava-next-68m-7b-IbED-MTC-history"
+exp_title="llava-next-68m-7b-IbED-MTC-history-second-turn"
 for tabed_rule in "${tabed_rules[@]}"; do
     for mm_weight_policy in "${mm_weight_policys[@]}"; do
         for history_item in "${history_items[@]}"; do
@@ -161,7 +169,7 @@ run_evaluation "$exp_title" "EvalTabedMTC" \
     "eval_history_w_grid_measure=${history_w_grid_measures[*]}"
 
 # MTP: Multimodal + Text-only + Pool
-exp_title="llava-next-68m-7b-IbED-MTP"
+exp_title="llava-next-68m-7b-IbED-MTP-second-turn"
 for tabed_rule in "${tabed_rules[@]}"; do
     for mm_weight_policy in "${mm_weight_policys[@]}"; do
         for target_dim in "${target_dim_image_poolings[@]}"; do
@@ -176,7 +184,7 @@ run_evaluation "$exp_title" "EvalTabedMTP" \
     "eval_target_dim_image_pooling=${target_dim_image_poolings[*]}"
 
 # MTP*: MTP with history
-exp_title="llava-next-68m-7b-IbED-MTP-history"
+exp_title="llava-next-68m-7b-IbED-MTP-history-second-turn"
 for tabed_rule in "${tabed_rules[@]}"; do
     for mm_weight_policy in "${mm_weight_policys[@]}"; do
         for target_dim in "${target_dim_image_poolings[@]}"; do
@@ -202,7 +210,7 @@ run_evaluation "$exp_title" "EvalTabedMTP" \
     "eval_history_w_grid_measure=${history_w_grid_measures[*]}"
 
 # MTCP: Multimodal + Text-only + Caption + Pool
-exp_title="llava-next-68m-7b-IbED-MTCP"
+exp_title="llava-next-68m-7b-IbED-MTCP-second-turn"
 for tabed_rule in "${tabed_rules[@]}"; do
     for mm_weight_policy in "${mm_weight_policys[@]}"; do
         for caption_type in "${caption_types[@]}"; do
@@ -223,13 +231,14 @@ run_evaluation "$exp_title" "EvalTabedMTCP" \
     "eval_target_dim_image_pooling=${target_dim_image_poolings[*]}"
 
 # MTCP*: MTCP with history
-exp_title="llava-next-68m-7b-IbED-MTCP-history"
+exp_title="llava-next-68m-7b-IbED-MTCP-history-second-turn"
+history_items_mtcp=(kld w-grid)
 for tabed_rule in "${tabed_rules[@]}"; do
     for mm_weight_policy in "${mm_weight_policys[@]}"; do
         for caption_type in "${caption_types[@]}"; do
             for captioning_model in "${captioning_models[@]}"; do
                 for target_dim in "${target_dim_image_poolings[@]}"; do
-                    for history_item in "${history_items[@]}"; do
+                    for history_item in "${history_items_mtcp[@]}"; do
                         for history_window in "${history_windows[@]}"; do
                             for w_grid_measure in "${history_w_grid_measures[@]}"; do
                                 run_experiment "$exp_title" "TabedMTCP" \
@@ -250,6 +259,6 @@ run_evaluation "$exp_title" "EvalTabedMTCP" \
     "eval_tabed_rule=${tabed_rules[*]}" "eval_mm_weight_policy=${mm_weight_policys[*]}" \
     "eval_caption_type=${caption_types[*]}" "eval_captioning_model=${captioning_models[*]}" \
     "eval_target_dim_image_pooling=${target_dim_image_poolings[*]}" \
-    "eval_history_dependent=True" "eval_history_item=$(IFS=,; echo "${history_items[*]}")" \
+    "eval_history_dependent=True" "eval_history_item=$(IFS=,; echo "${history_items_mtcp[*]}")" \
     "eval_history_window=${history_windows[*]}" \
     "eval_history_w_grid_measure=${history_w_grid_measures[*]}"

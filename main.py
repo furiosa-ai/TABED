@@ -11,7 +11,7 @@ import wandb
 
 from tabed.config import ex
 from tabed.utils.util import set_seed
-from trainer import Trainer
+from evaluator import Evaluator
 
 from huggingface_hub import login
 
@@ -39,13 +39,13 @@ def worker_process(rank, world_size, _config):
     worker_config['rank'] = rank
     worker_config['world_size'] = world_size
 
-    # Initialize trainer with worker-specific config
-    trainer = Trainer(worker_config)
+    # Initialize evaluator with worker-specific config
+    evaluator = Evaluator(worker_config)
 
     if not worker_config['test_only']:
-        trainer.train()
+        evaluator.train()
     else:
-        trainer.test()
+        evaluator.test()
 
 
 @ex.automain
@@ -58,12 +58,12 @@ def main(_config):
 		set_seed(_config['seed'])
 		login(os.environ.get("HF_TOKEN"))
 
-		trainer = Trainer(_config)
+		evaluator = Evaluator(_config)
 
 		if not _config['test_only']:
-			trainer.train() # train, save, test
+			evaluator.train() # train, save, test
 		else:
-			trainer.test() # test
+			evaluator.test() # test
 
 		if not _config['debug']:
 			wandb.finish(0)

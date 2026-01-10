@@ -487,10 +487,6 @@ class MLLMDataset(Dataset):
         else:
             resulting_prompt = self._get_text_data(batch, sample_idx)
 
-        if "llava-hf/llava-interleave-qwen" in self._config['drf']:
-            resulting_prompt = resulting_prompt.replace('user\n\n', 'user\n')
-            resulting_prompt = resulting_prompt.replace('assistant\n\n', 'assistant\n')
-
         output = {
             'prompt': resulting_prompt,
             'pixel_values_second_turn': pixel_values_second_turn,

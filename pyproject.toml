@@ -1,0 +1,53 @@
+[project]
+name = "tabed"
+version = "0.1.0"
+description = "Test-Time Adaptive Ensemble Drafting for Robust Speculative Decoding in LVLMs"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    # Core ML frameworks
+    "torch>=2.3.0",
+    "torchvision>=0.18.0",
+    "transformers>=4.44.0",
+    "accelerate>=0.28.0",
+
+    # Vision & image processing
+    "pillow>=11.0.0",
+    "opencv-python-headless>=4.10.0",
+    "timm>=1.0.0",
+
+    # Data handling
+    "datasets>=2.20.0",
+    "pandas>=2.2.0",
+    "numpy>=1.26.0",
+
+    # Experiment tracking
+    "sacred>=0.8.5",
+    "wandb>=0.16.0",
+
+    # Utilities
+    "tqdm>=4.66.0",
+    "absl-py>=2.1.0",
+    "einops>=0.7.0",
+    "huggingface-hub>=0.20.0",
+    "safetensors>=0.4.0",
+    "sentencepiece>=0.2.0",
+
+    # Optional for flash attention (may need separate install)
+    # "flash-attn>=2.6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=24.0.0",
+    "isort>=5.13.0",
+    "pylint>=3.2.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+# PyTorch CUDA 12.1 index for GPU support
+extra-index-url = ["https://download.pytorch.org/whl/cu121"]

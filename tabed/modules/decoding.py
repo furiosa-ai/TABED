@@ -6,7 +6,6 @@ import torch
 from absl import logging
 from transformers.models.llama.modeling_llama import LlamaForCausalLM
 from transformers.models.llava.modeling_llava import LlavaForConditionalGeneration
-from transformers.models.qwen2.modeling_qwen2 import Qwen2ForCausalLM
 
 from ..utils.util import (
     get_caption_prefix_ids,
@@ -97,7 +96,6 @@ class Decoding:
         }
 
         # Patch sampling methods
-        Qwen2ForCausalLM._sample = _sample
         LlamaForCausalLM._sample = _sample
         LlavaForConditionalGeneration._sample = _sample
 
@@ -119,11 +117,6 @@ class Decoding:
 
             if k == 'pixel_values':
                 if (
-                    'llava-hf/llava-interleave-qwen' in self._config['drf']
-                    and self._config['drf_dtype'] == 'fp16'
-                ):
-                    batch[k] = batch[k].half()
-                elif (
                     'lvlm160m-bf16' in self._config['drf']
                     and self._config['drf_dtype'] == 'bf16'
                 ):

@@ -23,16 +23,16 @@ from tabed.datamodules.dataset import create_data_loaders
 from tabed.criterions.base_criterion import BaseCriterion
 from tabed.utils.util import _save, get_ckpt_name
 from tabed.utils.saver import Saver
-from tabed.utils.utils_trainer import build_models, build_tokenizers, build_image_processors, get_decoding_class, get_criterion, warmup_generation
+from tabed.utils.utils_evaluator import build_models, build_tokenizers, build_image_processors, get_decoding_class, get_criterion, warmup_generation
 
 
-class Trainer(object):
-    def __init__(self, _config):        
+class Evaluator(object):
+    def __init__(self, _config):
         self._config = _config
         ckpt_save = get_ckpt_name(_config)
 
-        logging.info(f"[Trainer] Config: {ckpt_save}")
-        logging.info(f"[Trainer] Exp_title: {_config['exp_title']}")
+        logging.info(f"[Evaluator] Config: {ckpt_save}")
+        logging.info(f"[Evaluator] Exp_title: {_config['exp_title']}")
 
         # Models
         self.models = build_models(_config)
@@ -72,11 +72,11 @@ class Trainer(object):
             wandb.run.name = ckpt_save
 
     def train(self):
-        logging.info(f"[Trainer] Training starts ...")
+        logging.info(f"[Evaluator] Training starts ...")
         pass
     
     def inference(self, split: Literal["valid", "test"]):
-        logging.info(f"[Trainer] Inference on ({split}) starts ...")
+        logging.info(f"[Evaluator] Inference on ({split}) starts ...")
         # warmup for measuring time
         if not self._config['debug']:
             warmup_generation(self.models['drf'], self.tokenizers['drf'])
@@ -93,10 +93,10 @@ class Trainer(object):
             # self.tokenizers['drf'].batch_decode(self.models['tgt'].generate(**batch, **self.decoding.generate_config)['sequences'])[0]
 
             if i > 0 and i % self._config['save_steps'] == 0:
-                logging.info(f"[Trainer] iteration {i:05d} saving metrics ...")
+                logging.info(f"[Evaluator] iteration {i:05d} saving metrics ...")
                 self._save_metrics(i, reset=False)
 
-        logging.info(f"[Trainer] last iteration {i:05d} saving metrics ...")
+        logging.info(f"[Evaluator] last iteration {i:05d} saving metrics ...")
         self._save_metrics(reset=True)  # Final save with reset
 
     def _save_metrics(self, step: int=None, reset: bool=False):
